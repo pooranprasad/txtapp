@@ -6,8 +6,8 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
-using System.Web.Http.Description;
 using kontxt.Models;
 
 namespace kontxt.Controllers
@@ -17,35 +17,35 @@ namespace kontxt.Controllers
         private kontxtEntities db = new kontxtEntities();
 
         // GET api/AppUserSource
-        public IQueryable<AppUserSource> GetAppUserSources()
+        public IEnumerable<AppUserSource> GetAppUserSources()
         {
-            return db.AppUserSources;
+            var appusersources = db.AppUserSources.Include(a => a.AppUser).Include(a => a.Source);
+            return appusersources.AsEnumerable();
         }
 
         // GET api/AppUserSource/5
-        [ResponseType(typeof(AppUserSource))]
-        public IHttpActionResult GetAppUserSource(Guid id)
+        public AppUserSource GetAppUserSource(Guid id)
         {
             AppUserSource appusersource = db.AppUserSources.Find(id);
             if (appusersource == null)
             {
-                return NotFound();
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
             }
 
-            return Ok(appusersource);
+            return appusersource;
         }
 
         // PUT api/AppUserSource/5
-        public IHttpActionResult PutAppUserSource(Guid id, AppUserSource appusersource)
+        public HttpResponseMessage PutAppUserSource(Guid id, AppUserSource appusersource)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
             }
 
             if (id != appusersource.AppUserSourceId)
             {
-                return BadRequest();
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
             db.Entry(appusersource).State = EntityState.Modified;
@@ -54,79 +54,59 @@ namespace kontxt.Controllers
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (!AppUserSourceExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         // POST api/AppUserSource
-        [ResponseType(typeof(AppUserSource))]
-        public IHttpActionResult PostAppUserSource(AppUserSource appusersource)
+        public HttpResponseMessage PostAppUserSource(AppUserSource appusersource)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                db.AppUserSources.Add(appusersource);
+                db.SaveChanges();
+
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, appusersource);
+                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { id = appusersource.AppUserSourceId }));
+                return response;
+            }
+            else
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+            }
+        }
+
+        // DELETE api/AppUserSource/5
+        public HttpResponseMessage DeleteAppUserSource(Guid id)
+        {
+            AppUserSource appusersource = db.AppUserSources.Find(id);
+            if (appusersource == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
             }
 
-            db.AppUserSources.Add(appusersource);
+            db.AppUserSources.Remove(appusersource);
 
             try
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (AppUserSourceExists(appusersource.AppUserSourceId))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = appusersource.AppUserSourceId }, appusersource);
-        }
-
-        // DELETE api/AppUserSource/5
-        [ResponseType(typeof(AppUserSource))]
-        public IHttpActionResult DeleteAppUserSource(Guid id)
-        {
-            AppUserSource appusersource = db.AppUserSources.Find(id);
-            if (appusersource == null)
-            {
-                return NotFound();
-            }
-
-            db.AppUserSources.Remove(appusersource);
-            db.SaveChanges();
-
-            return Ok(appusersource);
+            return Request.CreateResponse(HttpStatusCode.OK, appusersource);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            db.Dispose();
             base.Dispose(disposing);
-        }
-
-        private bool AppUserSourceExists(Guid id)
-        {
-            return db.AppUserSources.Count(e => e.AppUserSourceId == id) > 0;
         }
     }
 }

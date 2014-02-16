@@ -6,8 +6,8 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
-using System.Web.Http.Description;
 using kontxt.Models;
 
 namespace kontxt.Controllers
@@ -17,35 +17,35 @@ namespace kontxt.Controllers
         private kontxtEntities db = new kontxtEntities();
 
         // GET api/ContactLink
-        public IQueryable<ContactLink> GetContactLinks()
+        public IEnumerable<ContactLink> GetContactLinks()
         {
-            return db.ContactLinks;
+            var contactlinks = db.ContactLinks.Include(c => c.Contact).Include(c => c.Contact1);
+            return contactlinks.AsEnumerable();
         }
 
         // GET api/ContactLink/5
-        [ResponseType(typeof(ContactLink))]
-        public IHttpActionResult GetContactLink(Guid id)
+        public ContactLink GetContactLink(Guid id)
         {
             ContactLink contactlink = db.ContactLinks.Find(id);
             if (contactlink == null)
             {
-                return NotFound();
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
             }
 
-            return Ok(contactlink);
+            return contactlink;
         }
 
         // PUT api/ContactLink/5
-        public IHttpActionResult PutContactLink(Guid id, ContactLink contactlink)
+        public HttpResponseMessage PutContactLink(Guid id, ContactLink contactlink)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
             }
 
             if (id != contactlink.ContactLinkId)
             {
-                return BadRequest();
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
             db.Entry(contactlink).State = EntityState.Modified;
@@ -54,79 +54,59 @@ namespace kontxt.Controllers
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (!ContactLinkExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         // POST api/ContactLink
-        [ResponseType(typeof(ContactLink))]
-        public IHttpActionResult PostContactLink(ContactLink contactlink)
+        public HttpResponseMessage PostContactLink(ContactLink contactlink)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                db.ContactLinks.Add(contactlink);
+                db.SaveChanges();
+
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, contactlink);
+                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { id = contactlink.ContactLinkId }));
+                return response;
+            }
+            else
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+            }
+        }
+
+        // DELETE api/ContactLink/5
+        public HttpResponseMessage DeleteContactLink(Guid id)
+        {
+            ContactLink contactlink = db.ContactLinks.Find(id);
+            if (contactlink == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
             }
 
-            db.ContactLinks.Add(contactlink);
+            db.ContactLinks.Remove(contactlink);
 
             try
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (ContactLinkExists(contactlink.ContactLinkId))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = contactlink.ContactLinkId }, contactlink);
-        }
-
-        // DELETE api/ContactLink/5
-        [ResponseType(typeof(ContactLink))]
-        public IHttpActionResult DeleteContactLink(Guid id)
-        {
-            ContactLink contactlink = db.ContactLinks.Find(id);
-            if (contactlink == null)
-            {
-                return NotFound();
-            }
-
-            db.ContactLinks.Remove(contactlink);
-            db.SaveChanges();
-
-            return Ok(contactlink);
+            return Request.CreateResponse(HttpStatusCode.OK, contactlink);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            db.Dispose();
             base.Dispose(disposing);
-        }
-
-        private bool ContactLinkExists(Guid id)
-        {
-            return db.ContactLinks.Count(e => e.ContactLinkId == id) > 0;
         }
     }
 }

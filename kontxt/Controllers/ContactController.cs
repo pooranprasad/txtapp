@@ -6,8 +6,8 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
-using System.Web.Http.Description;
 using kontxt.Models;
 
 namespace kontxt.Controllers
@@ -17,35 +17,34 @@ namespace kontxt.Controllers
         private kontxtEntities db = new kontxtEntities();
 
         // GET api/Contact
-        public IQueryable<Contact> GetContacts()
+        public IEnumerable<Contact> GetContacts()
         {
-            return db.Contacts;
+            return db.Contacts.AsEnumerable();
         }
 
         // GET api/Contact/5
-        [ResponseType(typeof(Contact))]
-        public IHttpActionResult GetContact(Guid id)
+        public Contact GetContact(Guid id)
         {
             Contact contact = db.Contacts.Find(id);
             if (contact == null)
             {
-                return NotFound();
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
             }
 
-            return Ok(contact);
+            return contact;
         }
 
         // PUT api/Contact/5
-        public IHttpActionResult PutContact(Guid id, Contact contact)
+        public HttpResponseMessage PutContact(Guid id, Contact contact)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
             }
 
             if (id != contact.ContactId)
             {
-                return BadRequest();
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
             db.Entry(contact).State = EntityState.Modified;
@@ -54,79 +53,59 @@ namespace kontxt.Controllers
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (!ContactExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         // POST api/Contact
-        [ResponseType(typeof(Contact))]
-        public IHttpActionResult PostContact(Contact contact)
+        public HttpResponseMessage PostContact(Contact contact)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                db.Contacts.Add(contact);
+                db.SaveChanges();
+
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, contact);
+                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { id = contact.ContactId }));
+                return response;
+            }
+            else
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+            }
+        }
+
+        // DELETE api/Contact/5
+        public HttpResponseMessage DeleteContact(Guid id)
+        {
+            Contact contact = db.Contacts.Find(id);
+            if (contact == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
             }
 
-            db.Contacts.Add(contact);
+            db.Contacts.Remove(contact);
 
             try
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (ContactExists(contact.ContactId))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = contact.ContactId }, contact);
-        }
-
-        // DELETE api/Contact/5
-        [ResponseType(typeof(Contact))]
-        public IHttpActionResult DeleteContact(Guid id)
-        {
-            Contact contact = db.Contacts.Find(id);
-            if (contact == null)
-            {
-                return NotFound();
-            }
-
-            db.Contacts.Remove(contact);
-            db.SaveChanges();
-
-            return Ok(contact);
+            return Request.CreateResponse(HttpStatusCode.OK, contact);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            db.Dispose();
             base.Dispose(disposing);
-        }
-
-        private bool ContactExists(Guid id)
-        {
-            return db.Contacts.Count(e => e.ContactId == id) > 0;
         }
     }
 }

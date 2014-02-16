@@ -6,8 +6,8 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
-using System.Web.Http.Description;
 using kontxt.Models;
 
 namespace kontxt.Controllers
@@ -17,35 +17,35 @@ namespace kontxt.Controllers
         private kontxtEntities db = new kontxtEntities();
 
         // GET api/AppUserContact
-        public IQueryable<AppUserContact> GetAppUserContacts()
+        public IEnumerable<AppUserContact> GetAppUserContacts()
         {
-            return db.AppUserContacts;
+            var appusercontacts = db.AppUserContacts.Include(a => a.AppUser).Include(a => a.Contact);
+            return appusercontacts.AsEnumerable();
         }
 
         // GET api/AppUserContact/5
-        [ResponseType(typeof(AppUserContact))]
-        public IHttpActionResult GetAppUserContact(Guid id)
+        public AppUserContact GetAppUserContact(Guid id)
         {
             AppUserContact appusercontact = db.AppUserContacts.Find(id);
             if (appusercontact == null)
             {
-                return NotFound();
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
             }
 
-            return Ok(appusercontact);
+            return appusercontact;
         }
 
         // PUT api/AppUserContact/5
-        public IHttpActionResult PutAppUserContact(Guid id, AppUserContact appusercontact)
+        public HttpResponseMessage PutAppUserContact(Guid id, AppUserContact appusercontact)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
             }
 
             if (id != appusercontact.AppUserContactId)
             {
-                return BadRequest();
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
             db.Entry(appusercontact).State = EntityState.Modified;
@@ -54,79 +54,59 @@ namespace kontxt.Controllers
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (!AppUserContactExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         // POST api/AppUserContact
-        [ResponseType(typeof(AppUserContact))]
-        public IHttpActionResult PostAppUserContact(AppUserContact appusercontact)
+        public HttpResponseMessage PostAppUserContact(AppUserContact appusercontact)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                db.AppUserContacts.Add(appusercontact);
+                db.SaveChanges();
+
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, appusercontact);
+                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { id = appusercontact.AppUserContactId }));
+                return response;
+            }
+            else
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+            }
+        }
+
+        // DELETE api/AppUserContact/5
+        public HttpResponseMessage DeleteAppUserContact(Guid id)
+        {
+            AppUserContact appusercontact = db.AppUserContacts.Find(id);
+            if (appusercontact == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
             }
 
-            db.AppUserContacts.Add(appusercontact);
+            db.AppUserContacts.Remove(appusercontact);
 
             try
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (AppUserContactExists(appusercontact.AppUserContactId))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = appusercontact.AppUserContactId }, appusercontact);
-        }
-
-        // DELETE api/AppUserContact/5
-        [ResponseType(typeof(AppUserContact))]
-        public IHttpActionResult DeleteAppUserContact(Guid id)
-        {
-            AppUserContact appusercontact = db.AppUserContacts.Find(id);
-            if (appusercontact == null)
-            {
-                return NotFound();
-            }
-
-            db.AppUserContacts.Remove(appusercontact);
-            db.SaveChanges();
-
-            return Ok(appusercontact);
+            return Request.CreateResponse(HttpStatusCode.OK, appusercontact);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            db.Dispose();
             base.Dispose(disposing);
-        }
-
-        private bool AppUserContactExists(Guid id)
-        {
-            return db.AppUserContacts.Count(e => e.AppUserContactId == id) > 0;
         }
     }
 }

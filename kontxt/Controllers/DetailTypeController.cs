@@ -6,8 +6,8 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
-using System.Web.Http.Description;
 using kontxt.Models;
 
 namespace kontxt.Controllers
@@ -17,35 +17,34 @@ namespace kontxt.Controllers
         private kontxtEntities db = new kontxtEntities();
 
         // GET api/DetailType
-        public IQueryable<DetailType> GetDetailTypes()
+        public IEnumerable<DetailType> GetDetailTypes()
         {
-            return db.DetailTypes;
+            return db.DetailTypes.AsEnumerable();
         }
 
         // GET api/DetailType/5
-        [ResponseType(typeof(DetailType))]
-        public IHttpActionResult GetDetailType(int id)
+        public DetailType GetDetailType(int id)
         {
             DetailType detailtype = db.DetailTypes.Find(id);
             if (detailtype == null)
             {
-                return NotFound();
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
             }
 
-            return Ok(detailtype);
+            return detailtype;
         }
 
         // PUT api/DetailType/5
-        public IHttpActionResult PutDetailType(int id, DetailType detailtype)
+        public HttpResponseMessage PutDetailType(int id, DetailType detailtype)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
             }
 
             if (id != detailtype.DetailTypeId)
             {
-                return BadRequest();
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
             db.Entry(detailtype).State = EntityState.Modified;
@@ -54,64 +53,59 @@ namespace kontxt.Controllers
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (!DetailTypeExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         // POST api/DetailType
-        [ResponseType(typeof(DetailType))]
-        public IHttpActionResult PostDetailType(DetailType detailtype)
+        public HttpResponseMessage PostDetailType(DetailType detailtype)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                db.DetailTypes.Add(detailtype);
+                db.SaveChanges();
+
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, detailtype);
+                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { id = detailtype.DetailTypeId }));
+                return response;
             }
-
-            db.DetailTypes.Add(detailtype);
-            db.SaveChanges();
-
-            return CreatedAtRoute("DefaultApi", new { id = detailtype.DetailTypeId }, detailtype);
+            else
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+            }
         }
 
         // DELETE api/DetailType/5
-        [ResponseType(typeof(DetailType))]
-        public IHttpActionResult DeleteDetailType(int id)
+        public HttpResponseMessage DeleteDetailType(int id)
         {
             DetailType detailtype = db.DetailTypes.Find(id);
             if (detailtype == null)
             {
-                return NotFound();
+                return Request.CreateResponse(HttpStatusCode.NotFound);
             }
 
             db.DetailTypes.Remove(detailtype);
-            db.SaveChanges();
 
-            return Ok(detailtype);
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
+            }
+
+            return Request.CreateResponse(HttpStatusCode.OK, detailtype);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            db.Dispose();
             base.Dispose(disposing);
-        }
-
-        private bool DetailTypeExists(int id)
-        {
-            return db.DetailTypes.Count(e => e.DetailTypeId == id) > 0;
         }
     }
 }

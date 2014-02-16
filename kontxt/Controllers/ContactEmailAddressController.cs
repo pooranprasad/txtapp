@@ -6,8 +6,8 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
-using System.Web.Http.Description;
 using kontxt.Models;
 
 namespace kontxt.Controllers
@@ -17,35 +17,35 @@ namespace kontxt.Controllers
         private kontxtEntities db = new kontxtEntities();
 
         // GET api/ContactEmailAddress
-        public IQueryable<ContactEmailAddress> GetContactEmailAddresses()
+        public IEnumerable<ContactEmailAddress> GetContactEmailAddresses()
         {
-            return db.ContactEmailAddresses;
+            var contactemailaddresses = db.ContactEmailAddresses.Include(c => c.Contact).Include(c => c.EmailAddress);
+            return contactemailaddresses.AsEnumerable();
         }
 
         // GET api/ContactEmailAddress/5
-        [ResponseType(typeof(ContactEmailAddress))]
-        public IHttpActionResult GetContactEmailAddress(Guid id)
+        public ContactEmailAddress GetContactEmailAddress(Guid id)
         {
             ContactEmailAddress contactemailaddress = db.ContactEmailAddresses.Find(id);
             if (contactemailaddress == null)
             {
-                return NotFound();
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
             }
 
-            return Ok(contactemailaddress);
+            return contactemailaddress;
         }
 
         // PUT api/ContactEmailAddress/5
-        public IHttpActionResult PutContactEmailAddress(Guid id, ContactEmailAddress contactemailaddress)
+        public HttpResponseMessage PutContactEmailAddress(Guid id, ContactEmailAddress contactemailaddress)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
             }
 
             if (id != contactemailaddress.ContactEmailAddressId)
             {
-                return BadRequest();
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
             db.Entry(contactemailaddress).State = EntityState.Modified;
@@ -54,79 +54,59 @@ namespace kontxt.Controllers
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (!ContactEmailAddressExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         // POST api/ContactEmailAddress
-        [ResponseType(typeof(ContactEmailAddress))]
-        public IHttpActionResult PostContactEmailAddress(ContactEmailAddress contactemailaddress)
+        public HttpResponseMessage PostContactEmailAddress(ContactEmailAddress contactemailaddress)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                db.ContactEmailAddresses.Add(contactemailaddress);
+                db.SaveChanges();
+
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, contactemailaddress);
+                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { id = contactemailaddress.ContactEmailAddressId }));
+                return response;
+            }
+            else
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+            }
+        }
+
+        // DELETE api/ContactEmailAddress/5
+        public HttpResponseMessage DeleteContactEmailAddress(Guid id)
+        {
+            ContactEmailAddress contactemailaddress = db.ContactEmailAddresses.Find(id);
+            if (contactemailaddress == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
             }
 
-            db.ContactEmailAddresses.Add(contactemailaddress);
+            db.ContactEmailAddresses.Remove(contactemailaddress);
 
             try
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (ContactEmailAddressExists(contactemailaddress.ContactEmailAddressId))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = contactemailaddress.ContactEmailAddressId }, contactemailaddress);
-        }
-
-        // DELETE api/ContactEmailAddress/5
-        [ResponseType(typeof(ContactEmailAddress))]
-        public IHttpActionResult DeleteContactEmailAddress(Guid id)
-        {
-            ContactEmailAddress contactemailaddress = db.ContactEmailAddresses.Find(id);
-            if (contactemailaddress == null)
-            {
-                return NotFound();
-            }
-
-            db.ContactEmailAddresses.Remove(contactemailaddress);
-            db.SaveChanges();
-
-            return Ok(contactemailaddress);
+            return Request.CreateResponse(HttpStatusCode.OK, contactemailaddress);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            db.Dispose();
             base.Dispose(disposing);
-        }
-
-        private bool ContactEmailAddressExists(Guid id)
-        {
-            return db.ContactEmailAddresses.Count(e => e.ContactEmailAddressId == id) > 0;
         }
     }
 }

@@ -6,8 +6,8 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
-using System.Web.Http.Description;
 using kontxt.Models;
 
 namespace kontxt.Controllers
@@ -17,35 +17,35 @@ namespace kontxt.Controllers
         private kontxtEntities db = new kontxtEntities();
 
         // GET api/Device
-        public IQueryable<Device> GetDevices()
+        public IEnumerable<Device> GetDevices()
         {
-            return db.Devices;
+            var devices = db.Devices.Include(d => d.AppUser).Include(d => d.DeviceType);
+            return devices.AsEnumerable();
         }
 
         // GET api/Device/5
-        [ResponseType(typeof(Device))]
-        public IHttpActionResult GetDevice(Guid id)
+        public Device GetDevice(Guid id)
         {
             Device device = db.Devices.Find(id);
             if (device == null)
             {
-                return NotFound();
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
             }
 
-            return Ok(device);
+            return device;
         }
 
         // PUT api/Device/5
-        public IHttpActionResult PutDevice(Guid id, Device device)
+        public HttpResponseMessage PutDevice(Guid id, Device device)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
             }
 
             if (id != device.DeviceId)
             {
-                return BadRequest();
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
             db.Entry(device).State = EntityState.Modified;
@@ -54,79 +54,59 @@ namespace kontxt.Controllers
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (!DeviceExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         // POST api/Device
-        [ResponseType(typeof(Device))]
-        public IHttpActionResult PostDevice(Device device)
+        public HttpResponseMessage PostDevice(Device device)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                db.Devices.Add(device);
+                db.SaveChanges();
+
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, device);
+                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { id = device.DeviceId }));
+                return response;
+            }
+            else
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+            }
+        }
+
+        // DELETE api/Device/5
+        public HttpResponseMessage DeleteDevice(Guid id)
+        {
+            Device device = db.Devices.Find(id);
+            if (device == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
             }
 
-            db.Devices.Add(device);
+            db.Devices.Remove(device);
 
             try
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (DeviceExists(device.DeviceId))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = device.DeviceId }, device);
-        }
-
-        // DELETE api/Device/5
-        [ResponseType(typeof(Device))]
-        public IHttpActionResult DeleteDevice(Guid id)
-        {
-            Device device = db.Devices.Find(id);
-            if (device == null)
-            {
-                return NotFound();
-            }
-
-            db.Devices.Remove(device);
-            db.SaveChanges();
-
-            return Ok(device);
+            return Request.CreateResponse(HttpStatusCode.OK, device);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            db.Dispose();
             base.Dispose(disposing);
-        }
-
-        private bool DeviceExists(Guid id)
-        {
-            return db.Devices.Count(e => e.DeviceId == id) > 0;
         }
     }
 }

@@ -6,8 +6,8 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
-using System.Web.Http.Description;
 using kontxt.Models;
 
 namespace kontxt.Controllers
@@ -17,35 +17,35 @@ namespace kontxt.Controllers
         private kontxtEntities db = new kontxtEntities();
 
         // GET api/PhoneNumber
-        public IQueryable<PhoneNumber> GetPhoneNumbers()
+        public IEnumerable<PhoneNumber> GetPhoneNumbers()
         {
-            return db.PhoneNumbers;
+            var phonenumbers = db.PhoneNumbers.Include(p => p.Country);
+            return phonenumbers.AsEnumerable();
         }
 
         // GET api/PhoneNumber/5
-        [ResponseType(typeof(PhoneNumber))]
-        public IHttpActionResult GetPhoneNumber(Guid id)
+        public PhoneNumber GetPhoneNumber(Guid id)
         {
             PhoneNumber phonenumber = db.PhoneNumbers.Find(id);
             if (phonenumber == null)
             {
-                return NotFound();
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
             }
 
-            return Ok(phonenumber);
+            return phonenumber;
         }
 
         // PUT api/PhoneNumber/5
-        public IHttpActionResult PutPhoneNumber(Guid id, PhoneNumber phonenumber)
+        public HttpResponseMessage PutPhoneNumber(Guid id, PhoneNumber phonenumber)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
             }
 
             if (id != phonenumber.PhoneNumberId)
             {
-                return BadRequest();
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
             db.Entry(phonenumber).State = EntityState.Modified;
@@ -54,79 +54,59 @@ namespace kontxt.Controllers
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (!PhoneNumberExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         // POST api/PhoneNumber
-        [ResponseType(typeof(PhoneNumber))]
-        public IHttpActionResult PostPhoneNumber(PhoneNumber phonenumber)
+        public HttpResponseMessage PostPhoneNumber(PhoneNumber phonenumber)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                db.PhoneNumbers.Add(phonenumber);
+                db.SaveChanges();
+
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, phonenumber);
+                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { id = phonenumber.PhoneNumberId }));
+                return response;
+            }
+            else
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+            }
+        }
+
+        // DELETE api/PhoneNumber/5
+        public HttpResponseMessage DeletePhoneNumber(Guid id)
+        {
+            PhoneNumber phonenumber = db.PhoneNumbers.Find(id);
+            if (phonenumber == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
             }
 
-            db.PhoneNumbers.Add(phonenumber);
+            db.PhoneNumbers.Remove(phonenumber);
 
             try
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (PhoneNumberExists(phonenumber.PhoneNumberId))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = phonenumber.PhoneNumberId }, phonenumber);
-        }
-
-        // DELETE api/PhoneNumber/5
-        [ResponseType(typeof(PhoneNumber))]
-        public IHttpActionResult DeletePhoneNumber(Guid id)
-        {
-            PhoneNumber phonenumber = db.PhoneNumbers.Find(id);
-            if (phonenumber == null)
-            {
-                return NotFound();
-            }
-
-            db.PhoneNumbers.Remove(phonenumber);
-            db.SaveChanges();
-
-            return Ok(phonenumber);
+            return Request.CreateResponse(HttpStatusCode.OK, phonenumber);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            db.Dispose();
             base.Dispose(disposing);
-        }
-
-        private bool PhoneNumberExists(Guid id)
-        {
-            return db.PhoneNumbers.Count(e => e.PhoneNumberId == id) > 0;
         }
     }
 }

@@ -6,8 +6,8 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
-using System.Web.Http.Description;
 using kontxt.Models;
 
 namespace kontxt.Controllers
@@ -17,35 +17,35 @@ namespace kontxt.Controllers
         private kontxtEntities db = new kontxtEntities();
 
         // GET api/Source
-        public IQueryable<Source> GetSources()
+        public IEnumerable<Source> GetSources()
         {
-            return db.Sources;
+            var sources = db.Sources.Include(s => s.SourceType);
+            return sources.AsEnumerable();
         }
 
         // GET api/Source/5
-        [ResponseType(typeof(Source))]
-        public IHttpActionResult GetSource(int id)
+        public Source GetSource(int id)
         {
             Source source = db.Sources.Find(id);
             if (source == null)
             {
-                return NotFound();
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
             }
 
-            return Ok(source);
+            return source;
         }
 
         // PUT api/Source/5
-        public IHttpActionResult PutSource(int id, Source source)
+        public HttpResponseMessage PutSource(int id, Source source)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
             }
 
             if (id != source.SourceId)
             {
-                return BadRequest();
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
             db.Entry(source).State = EntityState.Modified;
@@ -54,64 +54,59 @@ namespace kontxt.Controllers
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (!SourceExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         // POST api/Source
-        [ResponseType(typeof(Source))]
-        public IHttpActionResult PostSource(Source source)
+        public HttpResponseMessage PostSource(Source source)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                db.Sources.Add(source);
+                db.SaveChanges();
+
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, source);
+                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { id = source.SourceId }));
+                return response;
             }
-
-            db.Sources.Add(source);
-            db.SaveChanges();
-
-            return CreatedAtRoute("DefaultApi", new { id = source.SourceId }, source);
+            else
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+            }
         }
 
         // DELETE api/Source/5
-        [ResponseType(typeof(Source))]
-        public IHttpActionResult DeleteSource(int id)
+        public HttpResponseMessage DeleteSource(int id)
         {
             Source source = db.Sources.Find(id);
             if (source == null)
             {
-                return NotFound();
+                return Request.CreateResponse(HttpStatusCode.NotFound);
             }
 
             db.Sources.Remove(source);
-            db.SaveChanges();
 
-            return Ok(source);
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
+            }
+
+            return Request.CreateResponse(HttpStatusCode.OK, source);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            db.Dispose();
             base.Dispose(disposing);
-        }
-
-        private bool SourceExists(int id)
-        {
-            return db.Sources.Count(e => e.SourceId == id) > 0;
         }
     }
 }

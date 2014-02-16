@@ -213,7 +213,7 @@ namespace kontxt.Areas.HelpPage
                         break;
                     case SampleDirection.Response:
                     default:
-                        type = api.ResponseDescription.ResponseType ?? api.ResponseDescription.DeclaredType;
+                        type = api.ActionDescriptor.ReturnType;
                         formatters = api.SupportedResponseFormatters;
                         break;
                 }

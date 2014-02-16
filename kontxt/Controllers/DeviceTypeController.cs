@@ -6,8 +6,8 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
-using System.Web.Http.Description;
 using kontxt.Models;
 
 namespace kontxt.Controllers
@@ -17,35 +17,34 @@ namespace kontxt.Controllers
         private kontxtEntities db = new kontxtEntities();
 
         // GET api/DeviceType
-        public IQueryable<DeviceType> GetDeviceTypes()
+        public IEnumerable<DeviceType> GetDeviceTypes()
         {
-            return db.DeviceTypes;
+            return db.DeviceTypes.AsEnumerable();
         }
 
         // GET api/DeviceType/5
-        [ResponseType(typeof(DeviceType))]
-        public IHttpActionResult GetDeviceType(int id)
+        public DeviceType GetDeviceType(int id)
         {
             DeviceType devicetype = db.DeviceTypes.Find(id);
             if (devicetype == null)
             {
-                return NotFound();
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
             }
 
-            return Ok(devicetype);
+            return devicetype;
         }
 
         // PUT api/DeviceType/5
-        public IHttpActionResult PutDeviceType(int id, DeviceType devicetype)
+        public HttpResponseMessage PutDeviceType(int id, DeviceType devicetype)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
             }
 
             if (id != devicetype.DeviceTypeId)
             {
-                return BadRequest();
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
             db.Entry(devicetype).State = EntityState.Modified;
@@ -54,64 +53,59 @@ namespace kontxt.Controllers
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (!DeviceTypeExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         // POST api/DeviceType
-        [ResponseType(typeof(DeviceType))]
-        public IHttpActionResult PostDeviceType(DeviceType devicetype)
+        public HttpResponseMessage PostDeviceType(DeviceType devicetype)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                db.DeviceTypes.Add(devicetype);
+                db.SaveChanges();
+
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, devicetype);
+                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { id = devicetype.DeviceTypeId }));
+                return response;
             }
-
-            db.DeviceTypes.Add(devicetype);
-            db.SaveChanges();
-
-            return CreatedAtRoute("DefaultApi", new { id = devicetype.DeviceTypeId }, devicetype);
+            else
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+            }
         }
 
         // DELETE api/DeviceType/5
-        [ResponseType(typeof(DeviceType))]
-        public IHttpActionResult DeleteDeviceType(int id)
+        public HttpResponseMessage DeleteDeviceType(int id)
         {
             DeviceType devicetype = db.DeviceTypes.Find(id);
             if (devicetype == null)
             {
-                return NotFound();
+                return Request.CreateResponse(HttpStatusCode.NotFound);
             }
 
             db.DeviceTypes.Remove(devicetype);
-            db.SaveChanges();
 
-            return Ok(devicetype);
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
+            }
+
+            return Request.CreateResponse(HttpStatusCode.OK, devicetype);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            db.Dispose();
             base.Dispose(disposing);
-        }
-
-        private bool DeviceTypeExists(int id)
-        {
-            return db.DeviceTypes.Count(e => e.DeviceTypeId == id) > 0;
         }
     }
 }

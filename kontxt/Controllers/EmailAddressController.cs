@@ -6,8 +6,8 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
-using System.Web.Http.Description;
 using kontxt.Models;
 
 namespace kontxt.Controllers
@@ -17,35 +17,34 @@ namespace kontxt.Controllers
         private kontxtEntities db = new kontxtEntities();
 
         // GET api/EmailAddress
-        public IQueryable<EmailAddress> GetEmailAddresses()
+        public IEnumerable<EmailAddress> GetEmailAddresses()
         {
-            return db.EmailAddresses;
+            return db.EmailAddresses.AsEnumerable();
         }
 
         // GET api/EmailAddress/5
-        [ResponseType(typeof(EmailAddress))]
-        public IHttpActionResult GetEmailAddress(Guid id)
+        public EmailAddress GetEmailAddress(Guid id)
         {
             EmailAddress emailaddress = db.EmailAddresses.Find(id);
             if (emailaddress == null)
             {
-                return NotFound();
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
             }
 
-            return Ok(emailaddress);
+            return emailaddress;
         }
 
         // PUT api/EmailAddress/5
-        public IHttpActionResult PutEmailAddress(Guid id, EmailAddress emailaddress)
+        public HttpResponseMessage PutEmailAddress(Guid id, EmailAddress emailaddress)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
             }
 
             if (id != emailaddress.EmailAddressId)
             {
-                return BadRequest();
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
             db.Entry(emailaddress).State = EntityState.Modified;
@@ -54,79 +53,59 @@ namespace kontxt.Controllers
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (!EmailAddressExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         // POST api/EmailAddress
-        [ResponseType(typeof(EmailAddress))]
-        public IHttpActionResult PostEmailAddress(EmailAddress emailaddress)
+        public HttpResponseMessage PostEmailAddress(EmailAddress emailaddress)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                db.EmailAddresses.Add(emailaddress);
+                db.SaveChanges();
+
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, emailaddress);
+                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { id = emailaddress.EmailAddressId }));
+                return response;
+            }
+            else
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+            }
+        }
+
+        // DELETE api/EmailAddress/5
+        public HttpResponseMessage DeleteEmailAddress(Guid id)
+        {
+            EmailAddress emailaddress = db.EmailAddresses.Find(id);
+            if (emailaddress == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
             }
 
-            db.EmailAddresses.Add(emailaddress);
+            db.EmailAddresses.Remove(emailaddress);
 
             try
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (EmailAddressExists(emailaddress.EmailAddressId))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = emailaddress.EmailAddressId }, emailaddress);
-        }
-
-        // DELETE api/EmailAddress/5
-        [ResponseType(typeof(EmailAddress))]
-        public IHttpActionResult DeleteEmailAddress(Guid id)
-        {
-            EmailAddress emailaddress = db.EmailAddresses.Find(id);
-            if (emailaddress == null)
-            {
-                return NotFound();
-            }
-
-            db.EmailAddresses.Remove(emailaddress);
-            db.SaveChanges();
-
-            return Ok(emailaddress);
+            return Request.CreateResponse(HttpStatusCode.OK, emailaddress);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            db.Dispose();
             base.Dispose(disposing);
-        }
-
-        private bool EmailAddressExists(Guid id)
-        {
-            return db.EmailAddresses.Count(e => e.EmailAddressId == id) > 0;
         }
     }
 }

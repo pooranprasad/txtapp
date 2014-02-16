@@ -6,8 +6,8 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
-using System.Web.Http.Description;
 using kontxt.Models;
 
 namespace kontxt.Controllers
@@ -17,47 +17,34 @@ namespace kontxt.Controllers
         private kontxtEntities db = new kontxtEntities();
 
         // GET api/AppUser
-        //public IQueryable<AppUser> GetAppUsers()
-        //{
-        //    return db.AppUsers;
-        //}
-
-        // GET api/AppUser/5
-        [ResponseType(typeof(AppUser))]
-        public IHttpActionResult GetAppUser(string userid, string password)
+        public IEnumerable<AppUser> GetAppUsers()
         {
-            AppUser appuser = db.AppUsers.Where(w=>w.UserId==userid && w.Password==password).FirstOrDefault();
-            if (appuser == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(appuser);
+            return db.AppUsers.AsEnumerable();
         }
 
-        [ResponseType(typeof(string))]
-        public IHttpActionResult GetAppUser(string userid)
+        // GET api/AppUser/5
+        public AppUser GetAppUser(Guid id)
         {
-            AppUser appuser = db.AppUsers.Where(w => w.UserId == userid).FirstOrDefault();
+            AppUser appuser = db.AppUsers.Find(id);
             if (appuser == null)
             {
-                return NotFound();
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
             }
 
-            return Ok(appuser.AppUserId);
+            return appuser;
         }
 
         // PUT api/AppUser/5
-        public IHttpActionResult PutAppUser(Guid id, AppUser appuser)
+        public HttpResponseMessage PutAppUser(Guid id, AppUser appuser)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
             }
 
             if (id != appuser.AppUserId)
             {
-                return BadRequest();
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
             db.Entry(appuser).State = EntityState.Modified;
@@ -66,79 +53,59 @@ namespace kontxt.Controllers
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (!AppUserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         // POST api/AppUser
-        [ResponseType(typeof(AppUser))]
-        public IHttpActionResult PostAppUser(AppUser appuser)
+        public HttpResponseMessage PostAppUser(AppUser appuser)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                db.AppUsers.Add(appuser);
+                db.SaveChanges();
+
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, appuser);
+                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { id = appuser.AppUserId }));
+                return response;
+            }
+            else
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+            }
+        }
+
+        // DELETE api/AppUser/5
+        public HttpResponseMessage DeleteAppUser(Guid id)
+        {
+            AppUser appuser = db.AppUsers.Find(id);
+            if (appuser == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
             }
 
-            db.AppUsers.Add(appuser);
+            db.AppUsers.Remove(appuser);
 
             try
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (AppUserExists(appuser.AppUserId))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = appuser.AppUserId }, appuser);
-        }
-
-        // DELETE api/AppUser/5
-        [ResponseType(typeof(AppUser))]
-        public IHttpActionResult DeleteAppUser(Guid id)
-        {
-            AppUser appuser = db.AppUsers.Find(id);
-            if (appuser == null)
-            {
-                return NotFound();
-            }
-
-            db.AppUsers.Remove(appuser);
-            db.SaveChanges();
-
-            return Ok(appuser);
+            return Request.CreateResponse(HttpStatusCode.OK, appuser);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            db.Dispose();
             base.Dispose(disposing);
-        }
-
-        private bool AppUserExists(Guid id)
-        {
-            return db.AppUsers.Count(e => e.AppUserId == id) > 0;
         }
     }
 }

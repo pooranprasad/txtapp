@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="72df263e6a7b4deeaa355bcc0b9705ae" Name="Diagram1">
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.AppUser" Width="1.5" PointX="0.75" PointY="12.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.AppUserContact" Width="1.5" PointX="3" PointY="7.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.AppUserSource" Width="1.5" PointX="10.25" PointY="7.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.Contact" Width="1.5" PointX="0.75" PointY="7" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.ContactDetail" Width="1.5" PointX="6" PointY="7.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.ContactEmailAddress" Width="1.5" PointX="3" PointY="4.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.ContactLink" Width="1.5" PointX="3" PointY="16.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.ContactPhoneNumber" Width="1.5" PointX="3" PointY="11.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.Country" Width="1.5" PointX="1.5" PointY="19.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.Detail" Width="1.5" PointX="3.75" PointY="0.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.DetailType" Width="1.5" PointX="1.5" PointY="1" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.Device" Width="1.5" PointX="6" PointY="12.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.DeviceType" Width="1.5" PointX="3.75" PointY="20.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.EmailAddress" Width="1.5" PointX="0.75" PointY="4.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.PhoneNumber" Width="1.5" PointX="0.75" PointY="16.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.Source" Width="1.5" PointX="8" PointY="1" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.SourceType" Width="1.5" PointX="5.75" PointY="1.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="dbe4ef8d5ecdf74c949bdda2d30181681aModel.Token" Width="1.5" PointX="3" PointY="23.375" IsExpanded="true" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_AppUserContact_AppUser" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_AppUserSource_AppUser" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_Device_AppUser" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_Token_AppUser" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_AppUserContact_Contact" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_AppUserSource_Source" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_ContactDetail_Contact" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_ContactEmailAddress_Contact" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_ContactLink_Contact" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_ContactLink_Contact1" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_ContactPhoneNumber_Contact" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_ContactDetail_Detail" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_ContactEmailAddress_EmailAddress" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_ContactPhoneNumber_PhoneNumber" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_PhoneNumber_Country" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_Detail_DetailType" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_Device_DeviceType" ManuallyRouted="false" />
+        <AssociationConnector Association="dbe4ef8d5ecdf74c949bdda2d30181681aModel.FK_Source_SourceType" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

@@ -6,8 +6,8 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
-using System.Web.Http.Description;
 using kontxt.Models;
 
 namespace kontxt.Controllers
@@ -17,35 +17,35 @@ namespace kontxt.Controllers
         private kontxtEntities db = new kontxtEntities();
 
         // GET api/Token
-        public IQueryable<Token> GetTokens()
+        public IEnumerable<Token> GetTokens()
         {
-            return db.Tokens;
+            var tokens = db.Tokens.Include(t => t.AppUser);
+            return tokens.AsEnumerable();
         }
 
         // GET api/Token/5
-        [ResponseType(typeof(Token))]
-        public IHttpActionResult GetToken(Guid id)
+        public Token GetToken(Guid id)
         {
             Token token = db.Tokens.Find(id);
             if (token == null)
             {
-                return NotFound();
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
             }
 
-            return Ok(token);
+            return token;
         }
 
         // PUT api/Token/5
-        public IHttpActionResult PutToken(Guid id, Token token)
+        public HttpResponseMessage PutToken(Guid id, Token token)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
             }
 
             if (id != token.TokenId)
             {
-                return BadRequest();
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
             db.Entry(token).State = EntityState.Modified;
@@ -54,79 +54,59 @@ namespace kontxt.Controllers
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (!TokenExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         // POST api/Token
-        [ResponseType(typeof(Token))]
-        public IHttpActionResult PostToken(Token token)
+        public HttpResponseMessage PostToken(Token token)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                db.Tokens.Add(token);
+                db.SaveChanges();
+
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, token);
+                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { id = token.TokenId }));
+                return response;
+            }
+            else
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+            }
+        }
+
+        // DELETE api/Token/5
+        public HttpResponseMessage DeleteToken(Guid id)
+        {
+            Token token = db.Tokens.Find(id);
+            if (token == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
             }
 
-            db.Tokens.Add(token);
+            db.Tokens.Remove(token);
 
             try
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (TokenExists(token.TokenId))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = token.TokenId }, token);
-        }
-
-        // DELETE api/Token/5
-        [ResponseType(typeof(Token))]
-        public IHttpActionResult DeleteToken(Guid id)
-        {
-            Token token = db.Tokens.Find(id);
-            if (token == null)
-            {
-                return NotFound();
-            }
-
-            db.Tokens.Remove(token);
-            db.SaveChanges();
-
-            return Ok(token);
+            return Request.CreateResponse(HttpStatusCode.OK, token);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            db.Dispose();
             base.Dispose(disposing);
-        }
-
-        private bool TokenExists(Guid id)
-        {
-            return db.Tokens.Count(e => e.TokenId == id) > 0;
         }
     }
 }

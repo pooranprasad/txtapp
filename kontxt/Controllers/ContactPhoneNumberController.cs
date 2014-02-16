@@ -6,8 +6,8 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
-using System.Web.Http.Description;
 using kontxt.Models;
 
 namespace kontxt.Controllers
@@ -17,35 +17,35 @@ namespace kontxt.Controllers
         private kontxtEntities db = new kontxtEntities();
 
         // GET api/ContactPhoneNumber
-        public IQueryable<ContactPhoneNumber> GetContactPhoneNumbers()
+        public IEnumerable<ContactPhoneNumber> GetContactPhoneNumbers()
         {
-            return db.ContactPhoneNumbers;
+            var contactphonenumbers = db.ContactPhoneNumbers.Include(c => c.Contact).Include(c => c.PhoneNumber);
+            return contactphonenumbers.AsEnumerable();
         }
 
         // GET api/ContactPhoneNumber/5
-        [ResponseType(typeof(ContactPhoneNumber))]
-        public IHttpActionResult GetContactPhoneNumber(Guid id)
+        public ContactPhoneNumber GetContactPhoneNumber(Guid id)
         {
             ContactPhoneNumber contactphonenumber = db.ContactPhoneNumbers.Find(id);
             if (contactphonenumber == null)
             {
-                return NotFound();
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
             }
 
-            return Ok(contactphonenumber);
+            return contactphonenumber;
         }
 
         // PUT api/ContactPhoneNumber/5
-        public IHttpActionResult PutContactPhoneNumber(Guid id, ContactPhoneNumber contactphonenumber)
+        public HttpResponseMessage PutContactPhoneNumber(Guid id, ContactPhoneNumber contactphonenumber)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
             }
 
             if (id != contactphonenumber.ContactPhoneNumberId)
             {
-                return BadRequest();
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
             db.Entry(contactphonenumber).State = EntityState.Modified;
@@ -54,79 +54,59 @@ namespace kontxt.Controllers
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (!ContactPhoneNumberExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         // POST api/ContactPhoneNumber
-        [ResponseType(typeof(ContactPhoneNumber))]
-        public IHttpActionResult PostContactPhoneNumber(ContactPhoneNumber contactphonenumber)
+        public HttpResponseMessage PostContactPhoneNumber(ContactPhoneNumber contactphonenumber)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                db.ContactPhoneNumbers.Add(contactphonenumber);
+                db.SaveChanges();
+
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, contactphonenumber);
+                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { id = contactphonenumber.ContactPhoneNumberId }));
+                return response;
+            }
+            else
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+            }
+        }
+
+        // DELETE api/ContactPhoneNumber/5
+        public HttpResponseMessage DeleteContactPhoneNumber(Guid id)
+        {
+            ContactPhoneNumber contactphonenumber = db.ContactPhoneNumbers.Find(id);
+            if (contactphonenumber == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
             }
 
-            db.ContactPhoneNumbers.Add(contactphonenumber);
+            db.ContactPhoneNumbers.Remove(contactphonenumber);
 
             try
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (ContactPhoneNumberExists(contactphonenumber.ContactPhoneNumberId))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = contactphonenumber.ContactPhoneNumberId }, contactphonenumber);
-        }
-
-        // DELETE api/ContactPhoneNumber/5
-        [ResponseType(typeof(ContactPhoneNumber))]
-        public IHttpActionResult DeleteContactPhoneNumber(Guid id)
-        {
-            ContactPhoneNumber contactphonenumber = db.ContactPhoneNumbers.Find(id);
-            if (contactphonenumber == null)
-            {
-                return NotFound();
-            }
-
-            db.ContactPhoneNumbers.Remove(contactphonenumber);
-            db.SaveChanges();
-
-            return Ok(contactphonenumber);
+            return Request.CreateResponse(HttpStatusCode.OK, contactphonenumber);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            db.Dispose();
             base.Dispose(disposing);
-        }
-
-        private bool ContactPhoneNumberExists(Guid id)
-        {
-            return db.ContactPhoneNumbers.Count(e => e.ContactPhoneNumberId == id) > 0;
         }
     }
 }
