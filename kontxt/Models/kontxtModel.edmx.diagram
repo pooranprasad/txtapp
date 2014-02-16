@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="395b3a66d1c842819ce360da95db7be2" Name="Diagram1">
+        <EntityTypeShape EntityType="kontxtModel.AppUser" Width="1.5" PointX="0.75" PointY="12.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.AppUserContact" Width="1.5" PointX="3" PointY="7.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.AppUserSource" Width="1.5" PointX="10.25" PointY="7.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.Contact" Width="1.5" PointX="0.75" PointY="7" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.ContactDetail" Width="1.5" PointX="6" PointY="7.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.ContactEmailAddress" Width="1.5" PointX="3" PointY="4.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.ContactLink" Width="1.5" PointX="3" PointY="16.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.ContactPhoneNumber" Width="1.5" PointX="3" PointY="11.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.Country" Width="1.5" PointX="1.5" PointY="19.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.Detail" Width="1.5" PointX="3.75" PointY="0.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.DetailType" Width="1.5" PointX="1.5" PointY="1" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.Device" Width="1.5" PointX="6" PointY="12.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.DeviceType" Width="1.5" PointX="3.75" PointY="20.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.EmailAddress" Width="1.5" PointX="0.75" PointY="4.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.PhoneNumber" Width="1.5" PointX="0.75" PointY="16.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.Source" Width="1.5" PointX="8" PointY="1" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.SourceType" Width="1.5" PointX="5.75" PointY="1.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="kontxtModel.Token" Width="1.5" PointX="3" PointY="23.375" IsExpanded="true" />
+        <AssociationConnector Association="kontxtModel.FK_AppUserContact_AppUser" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_AppUserSource_AppUser" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_Device_AppUser" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_Token_AppUser" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_AppUserContact_Contact" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_AppUserSource_Source" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_ContactDetail_Contact" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_ContactEmailAddress_Contact" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_ContactLink_Contact" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_ContactLink_Contact1" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_ContactPhoneNumber_Contact" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_ContactDetail_Detail" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_ContactEmailAddress_EmailAddress" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_ContactPhoneNumber_PhoneNumber" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_PhoneNumber_Country" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_Detail_DetailType" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_Device_DeviceType" ManuallyRouted="false" />
+        <AssociationConnector Association="kontxtModel.FK_Source_SourceType" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
