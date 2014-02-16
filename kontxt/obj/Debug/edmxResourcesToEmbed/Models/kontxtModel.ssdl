@@ -1,0 +1,481 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="kontxtModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+  <EntityType Name="AppUser">
+    <Key>
+      <PropertyRef Name="AppUserId" />
+    </Key>
+    <Property Name="AppUserId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="UserId" Type="nvarchar" MaxLength="50" Nullable="false" />
+    <Property Name="Password" Type="nvarchar" MaxLength="50" Nullable="false" />
+    <Property Name="Salutation" Type="nvarchar" MaxLength="50" />
+    <Property Name="FirstName" Type="nvarchar" MaxLength="100" />
+    <Property Name="LastName" Type="nvarchar" MaxLength="100" />
+    <Property Name="MiddleName" Type="nvarchar" MaxLength="100" />
+    <Property Name="NickName" Type="nvarchar" MaxLength="50" />
+    <Property Name="Token" Type="nvarchar" MaxLength="50" />
+  </EntityType>
+  <EntityType Name="AppUserContact">
+    <Key>
+      <PropertyRef Name="AppUserContactId" />
+    </Key>
+    <Property Name="AppUserContactId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="AppUserId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="AppUserSourceId" Type="uniqueidentifier" />
+    <Property Name="ContactId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="IsSelf" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="AppUserSource">
+    <Key>
+      <PropertyRef Name="AppUserSourceId" />
+    </Key>
+    <Property Name="AppUserSourceId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="AppUserId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="SourceId" Type="int" Nullable="false" />
+    <Property Name="Credentials" Type="nvarchar" MaxLength="500" />
+  </EntityType>
+  <EntityType Name="Contact">
+    <Key>
+      <PropertyRef Name="ContactId" />
+    </Key>
+    <Property Name="ContactId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="Salutation" Type="nvarchar" MaxLength="50" />
+    <Property Name="FirstName" Type="nvarchar" MaxLength="100" />
+    <Property Name="LastName" Type="nvarchar" MaxLength="100" />
+    <Property Name="MiddleName" Type="nvarchar" MaxLength="100" />
+    <Property Name="NickName" Type="nvarchar" MaxLength="50" />
+    <Property Name="IsSelf" Type="bit" />
+    <Property Name="IsPrimary" Type="bit" />
+  </EntityType>
+  <EntityType Name="ContactDetail">
+    <Key>
+      <PropertyRef Name="ContactDetailId" />
+    </Key>
+    <Property Name="ContactDetailId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="ContactId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="DetailId" Type="int" Nullable="false" />
+    <Property Name="DetailValue" Type="nvarchar" MaxLength="200" />
+    <Property Name="IsActive" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="ContactEmailAddress">
+    <Key>
+      <PropertyRef Name="ContactEmailAddressId" />
+    </Key>
+    <Property Name="ContactEmailAddressId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="ContactId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="EmailAddressId" Type="uniqueidentifier" Nullable="false" />
+  </EntityType>
+  <EntityType Name="ContactLink">
+    <Key>
+      <PropertyRef Name="ContactLinkId" />
+    </Key>
+    <Property Name="ContactLinkId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="ContactId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="OtherContactId" Type="uniqueidentifier" Nullable="false" />
+  </EntityType>
+  <EntityType Name="ContactPhoneNumber">
+    <Key>
+      <PropertyRef Name="ContactPhoneNumberId" />
+    </Key>
+    <Property Name="ContactPhoneNumberId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="ContactId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="PhoneNumberId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="Extn" Type="nvarchar" MaxLength="10" />
+    <Property Name="IsPrimary" Type="bit" Nullable="false" />
+    <Property Name="IsPersonal" Type="bit" Nullable="false" />
+    <Property Name="IsEnterprise" Type="bit" Nullable="false" />
+    <Property Name="IsActive" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Country">
+    <Key>
+      <PropertyRef Name="CountryId" />
+    </Key>
+    <Property Name="CountryId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="CountryName" Type="nvarchar" MaxLength="50" Nullable="false" />
+    <Property Name="CountryISOCode" Type="nvarchar" MaxLength="10" Nullable="false" />
+    <Property Name="CountryPrefix" Type="nvarchar" MaxLength="10" />
+  </EntityType>
+  <EntityType Name="Detail">
+    <Key>
+      <PropertyRef Name="DetailId" />
+    </Key>
+    <Property Name="DetailId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="DetailTypeId" Type="int" Nullable="false" />
+    <Property Name="DetailName" Type="nvarchar" MaxLength="50" Nullable="false" />
+  </EntityType>
+  <EntityType Name="DetailType">
+    <Key>
+      <PropertyRef Name="DetailTypeId" />
+    </Key>
+    <Property Name="DetailTypeId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="ParentDetailType" Type="int" />
+    <Property Name="DetailTypeName" Type="nvarchar" MaxLength="50" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Device">
+    <Key>
+      <PropertyRef Name="DeviceId" />
+    </Key>
+    <Property Name="DeviceId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="DeviceTypeId" Type="int" Nullable="false" />
+    <Property Name="AppUserId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="UDID" Type="nvarchar" MaxLength="50" />
+    <Property Name="DefaultCallReceiver" Type="bit" />
+    <Property Name="DefaultDataReceiver" Type="bit" />
+    <Property Name="DataReceiverSequence" Type="int" />
+  </EntityType>
+  <EntityType Name="DeviceType">
+    <Key>
+      <PropertyRef Name="DeviceTypeId" />
+    </Key>
+    <Property Name="DeviceTypeId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="DeviceTypeName" Type="nvarchar" MaxLength="50" Nullable="false" />
+  </EntityType>
+  <EntityType Name="EmailAddress">
+    <Key>
+      <PropertyRef Name="EmailAddressId" />
+    </Key>
+    <Property Name="EmailAddressId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="ProvidedEmailAddress" Type="nvarchar" MaxLength="100" Nullable="false" />
+  </EntityType>
+  <EntityType Name="PhoneNumber">
+    <Key>
+      <PropertyRef Name="PhoneNumberId" />
+    </Key>
+    <Property Name="PhoneNumberId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="PhoneNumber" Type="bigint" Nullable="false" />
+    <Property Name="Display" Type="nvarchar" MaxLength="50" />
+    <Property Name="CountryId" Type="int" />
+  </EntityType>
+  <EntityType Name="Source">
+    <Key>
+      <PropertyRef Name="SourceId" />
+    </Key>
+    <Property Name="SourceId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="SourceTypeId" Type="int" Nullable="false" />
+    <Property Name="SourceName" Type="nvarchar" MaxLength="50" Nullable="false" />
+  </EntityType>
+  <EntityType Name="SourceType">
+    <Key>
+      <PropertyRef Name="SourceTypeId" />
+    </Key>
+    <Property Name="SourceTypeId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="ParentSourceTypeId" Type="int" />
+    <Property Name="SourceTypeName" Type="nvarchar" MaxLength="50" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Token">
+    <Key>
+      <PropertyRef Name="TokenId" />
+    </Key>
+    <Property Name="TokenId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="AppUserId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="IssueDateTime" Type="datetime" Nullable="false" />
+    <Property Name="Validity" Type="int" Nullable="false" />
+  </EntityType>
+  <Association Name="FK_AppUserContact_AppUser">
+    <End Role="AppUser" Type="Self.AppUser" Multiplicity="1" />
+    <End Role="AppUserContact" Type="Self.AppUserContact" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="AppUser">
+        <PropertyRef Name="AppUserId" />
+      </Principal>
+      <Dependent Role="AppUserContact">
+        <PropertyRef Name="AppUserId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_AppUserContact_Contact">
+    <End Role="Contact" Type="Self.Contact" Multiplicity="1" />
+    <End Role="AppUserContact" Type="Self.AppUserContact" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Contact">
+        <PropertyRef Name="ContactId" />
+      </Principal>
+      <Dependent Role="AppUserContact">
+        <PropertyRef Name="ContactId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_AppUserSource_AppUser">
+    <End Role="AppUser" Type="Self.AppUser" Multiplicity="1" />
+    <End Role="AppUserSource" Type="Self.AppUserSource" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="AppUser">
+        <PropertyRef Name="AppUserId" />
+      </Principal>
+      <Dependent Role="AppUserSource">
+        <PropertyRef Name="AppUserId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_AppUserSource_Source">
+    <End Role="Source" Type="Self.Source" Multiplicity="1" />
+    <End Role="AppUserSource" Type="Self.AppUserSource" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Source">
+        <PropertyRef Name="SourceId" />
+      </Principal>
+      <Dependent Role="AppUserSource">
+        <PropertyRef Name="SourceId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ContactDetail_Contact">
+    <End Role="Contact" Type="Self.Contact" Multiplicity="1" />
+    <End Role="ContactDetail" Type="Self.ContactDetail" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Contact">
+        <PropertyRef Name="ContactId" />
+      </Principal>
+      <Dependent Role="ContactDetail">
+        <PropertyRef Name="ContactId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ContactDetail_Detail">
+    <End Role="Detail" Type="Self.Detail" Multiplicity="1" />
+    <End Role="ContactDetail" Type="Self.ContactDetail" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Detail">
+        <PropertyRef Name="DetailId" />
+      </Principal>
+      <Dependent Role="ContactDetail">
+        <PropertyRef Name="DetailId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ContactEmailAddress_Contact">
+    <End Role="Contact" Type="Self.Contact" Multiplicity="1" />
+    <End Role="ContactEmailAddress" Type="Self.ContactEmailAddress" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Contact">
+        <PropertyRef Name="ContactId" />
+      </Principal>
+      <Dependent Role="ContactEmailAddress">
+        <PropertyRef Name="ContactId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ContactEmailAddress_EmailAddress">
+    <End Role="EmailAddress" Type="Self.EmailAddress" Multiplicity="1" />
+    <End Role="ContactEmailAddress" Type="Self.ContactEmailAddress" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="EmailAddress">
+        <PropertyRef Name="EmailAddressId" />
+      </Principal>
+      <Dependent Role="ContactEmailAddress">
+        <PropertyRef Name="EmailAddressId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ContactLink_Contact">
+    <End Role="Contact" Type="Self.Contact" Multiplicity="1" />
+    <End Role="ContactLink" Type="Self.ContactLink" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Contact">
+        <PropertyRef Name="ContactId" />
+      </Principal>
+      <Dependent Role="ContactLink">
+        <PropertyRef Name="ContactId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ContactLink_Contact1">
+    <End Role="Contact" Type="Self.Contact" Multiplicity="1" />
+    <End Role="ContactLink" Type="Self.ContactLink" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Contact">
+        <PropertyRef Name="ContactId" />
+      </Principal>
+      <Dependent Role="ContactLink">
+        <PropertyRef Name="OtherContactId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ContactPhoneNumber_Contact">
+    <End Role="Contact" Type="Self.Contact" Multiplicity="1" />
+    <End Role="ContactPhoneNumber" Type="Self.ContactPhoneNumber" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Contact">
+        <PropertyRef Name="ContactId" />
+      </Principal>
+      <Dependent Role="ContactPhoneNumber">
+        <PropertyRef Name="ContactId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ContactPhoneNumber_PhoneNumber">
+    <End Role="PhoneNumber" Type="Self.PhoneNumber" Multiplicity="1" />
+    <End Role="ContactPhoneNumber" Type="Self.ContactPhoneNumber" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="PhoneNumber">
+        <PropertyRef Name="PhoneNumberId" />
+      </Principal>
+      <Dependent Role="ContactPhoneNumber">
+        <PropertyRef Name="PhoneNumberId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Detail_DetailType">
+    <End Role="DetailType" Type="Self.DetailType" Multiplicity="1" />
+    <End Role="Detail" Type="Self.Detail" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="DetailType">
+        <PropertyRef Name="DetailTypeId" />
+      </Principal>
+      <Dependent Role="Detail">
+        <PropertyRef Name="DetailTypeId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Device_AppUser">
+    <End Role="AppUser" Type="Self.AppUser" Multiplicity="1" />
+    <End Role="Device" Type="Self.Device" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="AppUser">
+        <PropertyRef Name="AppUserId" />
+      </Principal>
+      <Dependent Role="Device">
+        <PropertyRef Name="AppUserId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Device_DeviceType">
+    <End Role="DeviceType" Type="Self.DeviceType" Multiplicity="1" />
+    <End Role="Device" Type="Self.Device" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="DeviceType">
+        <PropertyRef Name="DeviceTypeId" />
+      </Principal>
+      <Dependent Role="Device">
+        <PropertyRef Name="DeviceTypeId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_PhoneNumber_Country">
+    <End Role="Country" Type="Self.Country" Multiplicity="0..1" />
+    <End Role="PhoneNumber" Type="Self.PhoneNumber" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Country">
+        <PropertyRef Name="CountryId" />
+      </Principal>
+      <Dependent Role="PhoneNumber">
+        <PropertyRef Name="CountryId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Source_SourceType">
+    <End Role="SourceType" Type="Self.SourceType" Multiplicity="1" />
+    <End Role="Source" Type="Self.Source" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="SourceType">
+        <PropertyRef Name="SourceTypeId" />
+      </Principal>
+      <Dependent Role="Source">
+        <PropertyRef Name="SourceTypeId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Token_AppUser">
+    <End Role="AppUser" Type="Self.AppUser" Multiplicity="1" />
+    <End Role="Token" Type="Self.Token" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="AppUser">
+        <PropertyRef Name="AppUserId" />
+      </Principal>
+      <Dependent Role="Token">
+        <PropertyRef Name="AppUserId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityContainer Name="kontxtModelStoreContainer">
+    <EntitySet Name="AppUser" EntityType="Self.AppUser" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="AppUserContact" EntityType="Self.AppUserContact" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="AppUserSource" EntityType="Self.AppUserSource" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Contact" EntityType="Self.Contact" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="ContactDetail" EntityType="Self.ContactDetail" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="ContactEmailAddress" EntityType="Self.ContactEmailAddress" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="ContactLink" EntityType="Self.ContactLink" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="ContactPhoneNumber" EntityType="Self.ContactPhoneNumber" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Country" EntityType="Self.Country" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Detail" EntityType="Self.Detail" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="DetailType" EntityType="Self.DetailType" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Device" EntityType="Self.Device" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="DeviceType" EntityType="Self.DeviceType" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="EmailAddress" EntityType="Self.EmailAddress" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="PhoneNumber" EntityType="Self.PhoneNumber" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Source" EntityType="Self.Source" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="SourceType" EntityType="Self.SourceType" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Token" EntityType="Self.Token" Schema="dbo" store:Type="Tables" />
+    <AssociationSet Name="FK_AppUserContact_AppUser" Association="Self.FK_AppUserContact_AppUser">
+      <End Role="AppUser" EntitySet="AppUser" />
+      <End Role="AppUserContact" EntitySet="AppUserContact" />
+    </AssociationSet>
+    <AssociationSet Name="FK_AppUserContact_Contact" Association="Self.FK_AppUserContact_Contact">
+      <End Role="Contact" EntitySet="Contact" />
+      <End Role="AppUserContact" EntitySet="AppUserContact" />
+    </AssociationSet>
+    <AssociationSet Name="FK_AppUserSource_AppUser" Association="Self.FK_AppUserSource_AppUser">
+      <End Role="AppUser" EntitySet="AppUser" />
+      <End Role="AppUserSource" EntitySet="AppUserSource" />
+    </AssociationSet>
+    <AssociationSet Name="FK_AppUserSource_Source" Association="Self.FK_AppUserSource_Source">
+      <End Role="Source" EntitySet="Source" />
+      <End Role="AppUserSource" EntitySet="AppUserSource" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ContactDetail_Contact" Association="Self.FK_ContactDetail_Contact">
+      <End Role="Contact" EntitySet="Contact" />
+      <End Role="ContactDetail" EntitySet="ContactDetail" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ContactDetail_Detail" Association="Self.FK_ContactDetail_Detail">
+      <End Role="Detail" EntitySet="Detail" />
+      <End Role="ContactDetail" EntitySet="ContactDetail" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ContactEmailAddress_Contact" Association="Self.FK_ContactEmailAddress_Contact">
+      <End Role="Contact" EntitySet="Contact" />
+      <End Role="ContactEmailAddress" EntitySet="ContactEmailAddress" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ContactEmailAddress_EmailAddress" Association="Self.FK_ContactEmailAddress_EmailAddress">
+      <End Role="EmailAddress" EntitySet="EmailAddress" />
+      <End Role="ContactEmailAddress" EntitySet="ContactEmailAddress" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ContactLink_Contact" Association="Self.FK_ContactLink_Contact">
+      <End Role="Contact" EntitySet="Contact" />
+      <End Role="ContactLink" EntitySet="ContactLink" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ContactLink_Contact1" Association="Self.FK_ContactLink_Contact1">
+      <End Role="Contact" EntitySet="Contact" />
+      <End Role="ContactLink" EntitySet="ContactLink" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ContactPhoneNumber_Contact" Association="Self.FK_ContactPhoneNumber_Contact">
+      <End Role="Contact" EntitySet="Contact" />
+      <End Role="ContactPhoneNumber" EntitySet="ContactPhoneNumber" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ContactPhoneNumber_PhoneNumber" Association="Self.FK_ContactPhoneNumber_PhoneNumber">
+      <End Role="PhoneNumber" EntitySet="PhoneNumber" />
+      <End Role="ContactPhoneNumber" EntitySet="ContactPhoneNumber" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Detail_DetailType" Association="Self.FK_Detail_DetailType">
+      <End Role="DetailType" EntitySet="DetailType" />
+      <End Role="Detail" EntitySet="Detail" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Device_AppUser" Association="Self.FK_Device_AppUser">
+      <End Role="AppUser" EntitySet="AppUser" />
+      <End Role="Device" EntitySet="Device" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Device_DeviceType" Association="Self.FK_Device_DeviceType">
+      <End Role="DeviceType" EntitySet="DeviceType" />
+      <End Role="Device" EntitySet="Device" />
+    </AssociationSet>
+    <AssociationSet Name="FK_PhoneNumber_Country" Association="Self.FK_PhoneNumber_Country">
+      <End Role="Country" EntitySet="Country" />
+      <End Role="PhoneNumber" EntitySet="PhoneNumber" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Source_SourceType" Association="Self.FK_Source_SourceType">
+      <End Role="SourceType" EntitySet="SourceType" />
+      <End Role="Source" EntitySet="Source" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Token_AppUser" Association="Self.FK_Token_AppUser">
+      <End Role="AppUser" EntitySet="AppUser" />
+      <End Role="Token" EntitySet="Token" />
+    </AssociationSet>
+  </EntityContainer>
+</Schema>
