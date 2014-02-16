@@ -35,6 +35,18 @@ namespace kontxt.Controllers
             return Ok(appuser);
         }
 
+        [ResponseType(typeof(string))]
+        public IHttpActionResult GetAppUser(string userid)
+        {
+            AppUser appuser = db.AppUsers.Where(w => w.UserId == userid).FirstOrDefault();
+            if (appuser == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(appuser.AppUserId);
+        }
+
         // PUT api/AppUser/5
         public IHttpActionResult PutAppUser(Guid id, AppUser appuser)
         {
